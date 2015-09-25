@@ -28,7 +28,7 @@ public class Api {
             }
         };*/
 
-        public val SERVICE: ApiInterface =  Retrofit.Builder().baseUrl("http://10.1.20.178:3000")
+        public val SERVICE: ApiInterface =  Retrofit.Builder().baseUrl("https://tf2stats.vokal.io")
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build().create(ApiInterface::class.java)

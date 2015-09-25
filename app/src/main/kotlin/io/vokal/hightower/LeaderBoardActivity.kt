@@ -1,6 +1,7 @@
 package io.vokal.hightower;
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -21,6 +22,8 @@ import java.util.*
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
 import rx.functions.Func2
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 import java.util.concurrent.TimeUnit
 
 public class LeaderBoardActivity : RxActivity() {
@@ -39,6 +42,12 @@ public class LeaderBoardActivity : RxActivity() {
 
     override protected fun onCreate(state: Bundle?) {
         super.onCreate(state)
+
+        CalligraphyConfig.initDefault(CalligraphyConfig.Builder()
+                .setFontAttrId(R.attr.fontPath)
+                .build()
+        )
+
         setContentView(R.layout.activity_leader_board)
 
         actionBar.title = "Leaderboard"
@@ -77,6 +86,11 @@ public class LeaderBoardActivity : RxActivity() {
             })
     }
 
+    override
+    protected fun attachBaseContext(newBase : Context) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
+
     fun refresh() {
         updateList(Api.SERVICE.getAll()
                 .compose(bindToLifecycle<PlayerResponse>())
@@ -93,10 +107,10 @@ public class LeaderBoardActivity : RxActivity() {
                             mPlayerList = playerList
                             adapter = LeaderboardAdapter(playerList)
                             leaderboard.adapter = LeaderboardAdapter(playerList)
-                            swipe.isRefreshing = false
                         },
                         {error -> error.printStackTrace()
                             Toast.makeText(this, "There's a spy sappin my dispenser!", Toast.LENGTH_LONG).show()
+                            swipe.isRefreshing = false
                         }, { swipe.isRefreshing = false }
                 );
     }
