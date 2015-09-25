@@ -23,7 +23,7 @@
                 android:id="@+id/icon"
                 android:layout_width="75dp"
                 android:layout_height="75dp"
-                android:src="@android:color/darker_gray"
+                android:background="@android:color/black"
                 android:layout_alignParentLeft="true"/>
             <TextView
                 android:id="@+id/name"
