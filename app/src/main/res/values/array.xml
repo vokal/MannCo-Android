@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <string-array name="times">
+            <item>All</item>
+            <item>by Week</item>
+            <item>by Day</item>
+            <item>by Month</item>
+        </string-array>
+    <string-array name="names">
+        <item>by Points</item>
+        <item>by Kills</item>
+        <item>by KDR</item>
+    </string-array>
+</resources>
