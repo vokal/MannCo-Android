@@ -32,8 +32,9 @@ public class LeaderBoardActivity : RxActivity() {
         public var selectedSort = pointSort
     }
 
-    //return DecimalFormat("#.##").format(doub)
     private var adapter: LeaderboardAdapter = LeaderboardAdapter(ArrayList<Player>())
+
+    private var mPlayerList: List<Player> = ArrayList<Player>()
 
     override protected fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -45,7 +46,6 @@ public class LeaderBoardActivity : RxActivity() {
 
         val listener = object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView : RecyclerView, dx : Int, dy : Int) {
-                android.util.Log.d(" ", " " + dy)
                 adapter.resetOffset(dy > 0)
             }
         }
@@ -53,29 +53,40 @@ public class LeaderBoardActivity : RxActivity() {
         leaderboard.layoutManager = LinearLayoutManager(this)
         leaderboard.setOnScrollListener(listener)
 
-        Api.SERVICE.getAll()
+        updateList(Api.SERVICE.getAll()
                 .compose(bindToLifecycle<PlayerResponse>())
                 .observeOn(AndroidSchedulers.mainThread())
-                .map( {playerResonse -> playerResonse.results })
-                .flatMapIterable({i -> i})
+                .map( {playerResonse -> playerResonse.results }))
+
+        sorting.adapter = ArrayAdapter.createFromResource(this, R.array.names, R.layout.spinner_item)
+        timeframe.adapter = ArrayAdapter.createFromResource(this, R.array.times, R.layout.spinner_item)
+
+        val sortingListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+               selectedSort = when (position) {
+                    0 ->  killSort
+                    1 ->  pointSort
+                    else ->  kdrSort
+                }
+                updateList(Observable.just(mPlayerList))
+            }
+        }
+
+        sorting.onItemSelectedListener = sortingListener
+    }
+
+    fun updateList(observable : Observable<List<Player>>)  {
+                observable.flatMapIterable({i -> i})
                 .toSortedList(pointSort)
                 .subscribe(
                         {playerList : List<Player> ->
+                            mPlayerList = playerList
                             adapter = LeaderboardAdapter(playerList)
                             leaderboard.adapter = LeaderboardAdapter(playerList)
                         },
                         {error -> error.printStackTrace()}
                 );
-
-        sorting.adapter = ArrayAdapter.createFromResource(this, R.array.names, R.layout.spinner_item)
-        timeframe.adapter = ArrayAdapter.createFromResource(this, R.array.times, R.layout.spinner_item)
-
-        sorting.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
-            when (i) {
-                0 -> selectedSort = killSort
-                1 -> selectedSort = pointSort
-                2 -> selectedSort = kdrSort
-            }
-        }
     }
+
 }
