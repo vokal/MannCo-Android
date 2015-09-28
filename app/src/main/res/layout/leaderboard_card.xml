@@ -23,6 +23,7 @@
                 android:id="@+id/icon"
                 android:layout_width="75dp"
                 android:layout_height="75dp"
+                android:transitionName="image"
                 android:background="@android:color/black"
                 android:layout_alignParentLeft="true"/>
             <TextView
