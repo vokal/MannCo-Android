@@ -8,11 +8,14 @@ import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import android.widget.TextView
+import com.bumptech.glide.Glide
 import io.vokal.hightower.LeaderBoardActivity
 import io.vokal.hightower.PlayerActivity
 import io.vokal.hightower.R
 import io.vokal.hightower.api.model.Player
+import io.vokal.hightower.api.model.getKdr
 import kotlinx.android.synthetic.leaderboard_card.view.*
 import java.text.DecimalFormat
 import java.util.*
@@ -27,16 +30,19 @@ public class LeaderboardAdapter(val mData : List<Player>) : RecyclerView.Adapter
         holder.mPoints.text = Integer.toString(mData.get(position).POINTS)
         holder.mName.text = mData.get(position).NAME
         holder.mKills.text = Integer.toString(mData.get(position).KILLS)
-        holder.mBackground.tag = position
-        if (mData.get(position).Death == 0) mData.get(position).Death = 1
-        val doub : Double = ((mData.get(position).KILLS.toDouble()) / (mData.get(position).Death.toDouble()))
+        holder.mBackground.tag = mData.get(position).STEAMID
         holder.mKdr.text = DecimalFormat("#.##").format(mData.get(position).getKdr())
         holder.mBackground.setOnClickListener(View.OnClickListener { view ->
             val i = Intent(view.context, PlayerActivity::class.java)
-            i.putExtra("steamid", view.tag as Int)
+            i.putExtra("steamid", view.tag as String)
             view.context.startActivity(i)
         })
         holder.mRank.text = Integer.toString(position + 1)
+
+        Glide.with(holder.mIcon.context)
+                .load(mData.get(position).profile_image_url)
+                .into(holder.mIcon);
+        android.util.Log.d("asdf", "as " + mData.get(position).profile_image_url)
 
         setAnimation(holder.mBackground, position)
     }
@@ -57,6 +63,7 @@ public class LeaderboardAdapter(val mData : List<Player>) : RecyclerView.Adapter
         public var mKdr: TextView = v.kdr
         public var mBackground: View = v.background
         public var mRank: TextView = v.rank
+        public var mIcon: ImageView = v.icon
     }
 
     fun resetOffset(down : Boolean) {
