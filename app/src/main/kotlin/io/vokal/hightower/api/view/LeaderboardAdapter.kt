@@ -8,7 +8,9 @@ import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import android.widget.TextView
+import com.bumptech.glide.Glide
 import io.vokal.hightower.LeaderBoardActivity
 import io.vokal.hightower.PlayerActivity
 import io.vokal.hightower.R
@@ -28,8 +30,6 @@ public class LeaderboardAdapter(val mData : List<Player>) : RecyclerView.Adapter
         holder.mName.text = mData.get(position).NAME
         holder.mKills.text = Integer.toString(mData.get(position).KILLS)
         holder.mBackground.tag = position
-        if (mData.get(position).Death == 0) mData.get(position).Death = 1
-        val doub : Double = ((mData.get(position).KILLS.toDouble()) / (mData.get(position).Death.toDouble()))
         holder.mKdr.text = DecimalFormat("#.##").format(mData.get(position).getKdr())
         holder.mBackground.setOnClickListener(View.OnClickListener { view ->
             val i = Intent(view.context, PlayerActivity::class.java)
@@ -37,6 +37,10 @@ public class LeaderboardAdapter(val mData : List<Player>) : RecyclerView.Adapter
             view.context.startActivity(i)
         })
         holder.mRank.text = Integer.toString(position + 1)
+
+        Glide.with(holder.mIcon.context)
+                .load(mData.get(position).profile_image_url)
+                .into(holder.mIcon);
 
         setAnimation(holder.mBackground, position)
     }
@@ -57,6 +61,7 @@ public class LeaderboardAdapter(val mData : List<Player>) : RecyclerView.Adapter
         public var mKdr: TextView = v.kdr
         public var mBackground: View = v.background
         public var mRank: TextView = v.rank
+        public var mIcon: ImageView = v.icon
     }
 
     fun resetOffset(down : Boolean) {

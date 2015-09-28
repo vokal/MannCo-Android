@@ -1,6 +1,7 @@
 package io.vokal.hightower;
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -9,6 +10,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.SimpleAdapter
+import android.widget.Toast
 import com.trello.rxlifecycle.components.RxActivity
 import io.vokal.hightower.api.Api
 import io.vokal.hightower.api.model.Player
@@ -20,6 +22,8 @@ import java.util.*
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
 import rx.functions.Func2
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 import java.util.concurrent.TimeUnit
 
 public class LeaderBoardActivity : RxActivity() {
@@ -38,11 +42,16 @@ public class LeaderBoardActivity : RxActivity() {
 
     override protected fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        setContentView(R.layout.activity_leader_board)
-        setActionBar(tool)
 
-        actionBar.setDisplayShowTitleEnabled(false)
-        actionBar.setDisplayUseLogoEnabled(true)
+        CalligraphyConfig.initDefault(CalligraphyConfig.Builder()
+                .setFontAttrId(R.attr.fontPath)
+                .build()
+        )
+
+        setContentView(R.layout.activity_leader_board)
+
+        actionBar.title = "Leaderboard"
+        actionBar.setDisplayShowHomeEnabled(true)
 
         val listener = object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView : RecyclerView, dx : Int, dy : Int) {
@@ -53,10 +62,7 @@ public class LeaderBoardActivity : RxActivity() {
         leaderboard.layoutManager = LinearLayoutManager(this)
         leaderboard.setOnScrollListener(listener)
 
-        updateList(Api.SERVICE.getAll()
-                .compose(bindToLifecycle<PlayerResponse>())
-                .observeOn(AndroidSchedulers.mainThread())
-                .map( {playerResonse -> playerResonse.results }))
+        refresh()
 
         sorting.adapter = ArrayAdapter.createFromResource(this, R.array.names, R.layout.spinner_item)
         timeframe.adapter = ArrayAdapter.createFromResource(this, R.array.times, R.layout.spinner_item)
@@ -74,6 +80,23 @@ public class LeaderBoardActivity : RxActivity() {
         }
 
         sorting.onItemSelectedListener = sortingListener
+
+        swipe.setOnRefreshListener( {
+                refresh();
+            })
+    }
+
+    override
+    protected fun attachBaseContext(newBase : Context) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
+
+    fun refresh() {
+        updateList(Api.SERVICE.getAll()
+                .compose(bindToLifecycle<PlayerResponse>())
+                .observeOn(AndroidSchedulers.mainThread())
+                .map( {playerResonse -> playerResonse.results }))
+
     }
 
     fun updateList(observable : Observable<List<Player>>)  {
@@ -85,7 +108,10 @@ public class LeaderBoardActivity : RxActivity() {
                             adapter = LeaderboardAdapter(playerList)
                             leaderboard.adapter = LeaderboardAdapter(playerList)
                         },
-                        {error -> error.printStackTrace()}
+                        {error -> error.printStackTrace()
+                            Toast.makeText(this, "There's a spy sappin my dispenser!", Toast.LENGTH_LONG).show()
+                            swipe.isRefreshing = false
+                        }, { swipe.isRefreshing = false }
                 );
     }
 

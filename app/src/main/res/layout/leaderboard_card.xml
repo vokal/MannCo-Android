@@ -23,7 +23,7 @@
                 android:id="@+id/icon"
                 android:layout_width="75dp"
                 android:layout_height="75dp"
-                android:src="@android:color/darker_gray"
+                android:background="@android:color/black"
                 android:layout_alignParentLeft="true"/>
             <TextView
                 android:id="@+id/name"
@@ -31,7 +31,7 @@
                 android:layout_alignParentTop="true"
                 android:layout_toRightOf="@id/icon"
                 android:textSize="18sp"
-                android:textStyle="bold"
+                fontPath="fonts/TF2.ttf"
                 android:textColor="@android:color/black"
                 android:layout_margin="8dp"
                 android:layout_width="wrap_content"
@@ -63,7 +63,7 @@
                 android:layout_height="wrap_content" />
             <TextView
                 android:id="@+id/kdr_label"
-                android:text="k/dr"
+                android:text="k/d"
                 style="@style/LeaderboardLabel"
                 android:layout_alignBaseline="@id/kills"
                 android:layout_below="@id/name"
@@ -87,31 +87,17 @@
                 android:layout_toRightOf="@id/points"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-            <RelativeLayout
+            <TextView
+                android:id="@+id/rank"
                 android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:text="1"
                 android:layout_marginRight="15dp"
                 android:layout_alignParentRight="true"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:id="@+id/rank"
-                    android:layout_width="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:layout_gravity="center"
-                    android:layout_height="wrap_content"
-                    android:text="1"
-                    android:textSize="24sp"
-                    android:textColor="@android:color/black"
-                    android:layout_centerVertical="true"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:layout_marginTop="8dp"
-                    android:layout_gravity="center"
-                    android:text="Rank"
-                    android:layout_below="@id/rank"
-                    />
-            </RelativeLayout>
+                fontPath="fonts/TF2.ttf"
+                android:textSize="24sp"
+                android:textColor="@android:color/black"/>
         </RelativeLayout>
     </android.support.v7.widget.CardView>
 </LinearLayout>
