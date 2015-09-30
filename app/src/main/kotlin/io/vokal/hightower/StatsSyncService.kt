@@ -18,6 +18,7 @@ import com.google.gson.*
 import kotlin.properties.Delegates
 
 import io.vokal.hightower.model.KillCount
+import io.vokal.hightower.api.Api
 
 public class StatsSyncService: JobService() {
 
@@ -26,23 +27,6 @@ public class StatsSyncService: JobService() {
     }
 
     private var apiClient: GoogleApiClient by Delegates.notNull()
-    private var scheduler: JobScheduler by Delegates.notNull()
-
-    override fun onCreate() {
-        scheduler = getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
-
-        var builder = JobInfo.Builder(1, ComponentName(getPackageName(), 
-            StatsSyncService::class.java.getName()))
-        builder.setPeriodic( 3000 )
-
-        Log.i(TAG, "Starting service")
-        if (scheduler.schedule(builder.build()) <= 0) {
-            Log.e(TAG, "Error starting service")
-            return
-        }
-
-        Log.i(TAG, "Service started!")
-    }
  
     override fun onStartJob(params: JobParameters): Boolean {
 
@@ -77,25 +61,20 @@ public class StatsSyncService: JobService() {
     }
 
     fun sendMessage() {
-        Thread(object : Runnable {
-            override fun run() {
+        Api.SERVICE.getPlayer("STEAM_0:1:2280452")
+            .map { stats -> 
                 var nodes = Wearable.NodeApi.getConnectedNodes(apiClient).await()
 
                 val gson = Gson()
 
-                val count = KillCount(0, 0, 0, 0, 0)
-
                 for (node in nodes.getNodes()) {
                     var result = Wearable.MessageApi.sendMessage(apiClient, node.getId(), 
-                    "/stats-updated", gson.toJson(count).getBytes()).await()
+                        "/stats-updated", gson.toJson(stats).getBytes()).await()
 
                     if (!result.getStatus().isSuccess()) {
-                        Log.e(TAG, "error")
-                    } else {
-                        Log.i(TAG, "success!! sent to: " + node.getDisplayName())
+                        Log.e(TAG, "error sending to: " + node.getDisplayName())
                     }
                 }
             }
-        }).start()
     }
 }

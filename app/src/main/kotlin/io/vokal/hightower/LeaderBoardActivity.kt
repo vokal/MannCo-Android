@@ -1,6 +1,8 @@
 package io.vokal.hightower;
 
 import android.app.Activity
+import android.app.job.*
+import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
@@ -12,23 +14,32 @@ import android.widget.ArrayAdapter
 import android.widget.SimpleAdapter
 import android.widget.Toast
 import android.util.Log
+
 import com.trello.rxlifecycle.components.RxActivity
+
 import io.realm.Realm
 import io.realm.RealmConfiguration
+
 import io.vokal.hightower.api.Api
 import io.vokal.hightower.api.model.Player
 import io.vokal.hightower.api.model.PlayerResponse
 import io.vokal.hightower.api.model.getKdr
 import io.vokal.hightower.api.view.LeaderboardAdapter
+
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
+
 import kotlinx.android.synthetic.activity_leader_board.*
+import kotlin.properties.Delegates
+
 import java.util.*
+import java.util.concurrent.TimeUnit
+
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
 import rx.functions.Func2
+
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
-import java.util.concurrent.TimeUnit
 
 public class LeaderBoardActivity : RxActivity() {
 
@@ -41,13 +52,22 @@ public class LeaderBoardActivity : RxActivity() {
     }
 
     private var adapter: LeaderboardAdapter = LeaderboardAdapter(ArrayList<Player>())
+    private var scheduler: JobScheduler by Delegates.notNull()
 
     private var mPlayerList: List<Player> = ArrayList<Player>()
 
+    val realmConfig: RealmConfiguration by lazy {
+        RealmConfiguration.Builder(this)
+            .name("tf2.realm")
+            .schemaVersion(1)
+            .deleteRealmIfMigrationNeeded()
+            .build()
+    }
+
     override protected fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        var config : RealmConfiguration= RealmConfiguration.Builder(this).build();
-        Realm.setDefaultConfiguration(config);
+        Realm.setDefaultConfiguration(realmConfig)
+
         CalligraphyConfig.initDefault(CalligraphyConfig.Builder()
                 .setFontAttrId(R.attr.fontPath)
                 .build()
@@ -90,6 +110,21 @@ public class LeaderBoardActivity : RxActivity() {
         swipe.setOnRefreshListener( {
                 refresh();
             })
+
+        scheduleJob()
+    }
+
+    fun scheduleJob() {
+        scheduler = getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+
+        var builder = JobInfo.Builder(1, ComponentName(getPackageName(), 
+            StatsSyncService::class.java.getName()))
+        builder.setPeriodic(60000 * 10)
+
+        if (scheduler.schedule(builder.build()) <= 0) {
+            Log.e(TAG, "Error starting service")
+            return
+        }
     }
 
     override
