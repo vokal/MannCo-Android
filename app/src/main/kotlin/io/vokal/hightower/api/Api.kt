@@ -26,6 +26,7 @@ public class Api {
             fun  shouldSkipClass( clazz: Class<*>) : Boolean{
                 return false;
             }
+
         })
         .create();
         public val SERVICE: ApiInterface =  RestAdapter.Builder().setEndpoint("https://tf2stats.vokal.io")
