@@ -10,11 +10,8 @@ import android.view.animation.OvershootInterpolator
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.SimpleAdapter
-<<<<<<< Updated upstream
 import android.widget.Toast
-=======
 import android.util.Log
->>>>>>> Stashed changes
 import com.trello.rxlifecycle.components.RxActivity
 import io.realm.Realm
 import io.realm.RealmConfiguration
@@ -32,11 +29,6 @@ import rx.functions.Func2
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 import java.util.concurrent.TimeUnit
-
-import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.common.api.GoogleApiClient.*
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.wearable.Wearable
 
 public class LeaderBoardActivity : RxActivity() {
 
@@ -67,7 +59,6 @@ public class LeaderBoardActivity : RxActivity() {
         actionBar.setDisplayShowHomeEnabled(true)
 
         val listener = object : RecyclerView.OnScrollListener() {
-            val listsner = object : Rec
             override fun onScrolled(recyclerView : RecyclerView, dx : Int, dy : Int) {
                 adapter.resetOffset(dy > 0)
             }
@@ -99,24 +90,6 @@ public class LeaderBoardActivity : RxActivity() {
         swipe.setOnRefreshListener( {
                 refresh();
             })
-
-        var apiClient = GoogleApiClient.Builder(this)
-            .addConnectionCallbacks(object : ConnectionCallbacks {
-                override fun onConnected(hint: Bundle) {
-                    Log.i(TAG, "onConnected: " + hint)
-                }
-
-                override fun onConnectionSuspended(cause: Int) {
-                    Log.d(TAG, "onConnectionSuspended: ", + cause)
-                }
-            })
-            .addOnConnectionFailedListener(object : OnConnectionFailedListener {
-                override fun onConnectionFailed(result: ConnectionResult) {
-                    Log.d(TAG, "onConnectionFailed: " + result)
-                }
-            })
-            .addApi(Wearable.API)
-            .build()
     }
 
     override
