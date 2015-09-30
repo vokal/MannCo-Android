@@ -58,7 +58,6 @@ public class LeaderBoardActivity : RxActivity() {
         actionBar.setDisplayShowHomeEnabled(true)
 
         val listener = object : RecyclerView.OnScrollListener() {
-            val listsner = object : Rec
             override fun onScrolled(recyclerView : RecyclerView, dx : Int, dy : Int) {
                 adapter.resetOffset(dy > 0)
             }
