@@ -42,7 +42,6 @@ public class LeaderboardAdapter(val mData : List<Player>) : RecyclerView.Adapter
         Glide.with(holder.mIcon.context)
                 .load(mData.get(position).profile_image_url)
                 .into(holder.mIcon);
-        android.util.Log.d("asdf", "as " + mData.get(position).profile_image_url)
 
         setAnimation(holder.mBackground, position)
     }

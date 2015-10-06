@@ -1,0 +1,15 @@
+android {
+    signingConfigs {
+        release {
+            storeFile file("keystore.jks")
+            storePassword "vokalllc2"
+            keyAlias "hightower"
+            keyPassword "U966vQd#9zmJ%a*vQ&3*"
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}

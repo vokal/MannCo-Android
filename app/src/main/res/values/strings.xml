@@ -4,4 +4,9 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
+
+    <string name="settings_key_username">username_setting</string>
+    <string name="settings_key_steam_id">username_steam_id</string>
+    <string name="settings_key_community_id">username_community_id</string>
+
 </resources>
