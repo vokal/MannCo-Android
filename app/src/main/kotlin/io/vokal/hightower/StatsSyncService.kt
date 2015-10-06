@@ -1,24 +1,20 @@
 package io.vokal.hightower
 
-import android.app.job.*
-import android.content.Context
-import android.content.ComponentName
+import android.app.job.JobParameters
+import android.app.job.JobService
 import android.os.Bundle
+import android.support.v7.preference.PreferenceManager
 import android.util.Log
-
-import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.common.api.GoogleApiClient.*
 import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.wearable.DataApi
-import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener
 import com.google.android.gms.wearable.Wearable
-
-import com.google.gson.*
-
-import kotlin.properties.Delegates
-
-import io.vokal.hightower.model.KillCount
+import com.google.gson.Gson
 import io.vokal.hightower.api.Api
+import rx.schedulers.Schedulers
+import timber.log.Timber
+import kotlin.properties.Delegates
 
 public class StatsSyncService: JobService() {
 
@@ -33,6 +29,7 @@ public class StatsSyncService: JobService() {
         apiClient = GoogleApiClient.Builder(this)
             .addConnectionCallbacks(object : ConnectionCallbacks {
                 override fun onConnected(hint: Bundle?) {
+                    Timber.i("onConnected: %s", hint);
                     Log.i(TAG, "onConnected: " + hint)
 
                     sendMessage()
@@ -61,20 +58,26 @@ public class StatsSyncService: JobService() {
     }
 
     fun sendMessage() {
-        Api.SERVICE.getPlayer("STEAM_0:1:2280452")
-            .map { stats -> 
-                var nodes = Wearable.NodeApi.getConnectedNodes(apiClient).await()
+        var username = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            .getString(getString(R.string.settings_key_username), null)
 
-                val gson = Gson()
+        if (username != null) {
+            Api.SERVICE.getPlayer(username)
+                    .subscribeOn(Schedulers.io())
+                    .subscribe({ stats ->
+                        Log.d(TAG, "KillCount: " + stats)
 
-                for (node in nodes.getNodes()) {
-                    var result = Wearable.MessageApi.sendMessage(apiClient, node.getId(), 
-                        "/stats-updated", gson.toJson(stats).getBytes()).await()
+                        var nodes = Wearable.NodeApi.getConnectedNodes(apiClient).await()
 
-                    if (!result.getStatus().isSuccess()) {
-                        Log.e(TAG, "error sending to: " + node.getDisplayName())
-                    }
-                }
-            }
+                        for (node in nodes.nodes) {
+                            var result = Wearable.MessageApi.sendMessage(apiClient, node.id,
+                                    "/stats-updated", Gson().toJson(stats).getBytes()).await()
+
+                            if (!result.status.isSuccess) {
+                                Log.e(TAG, "error sending to: " + node.displayName)
+                            }
+                        }
+                    }, { e -> e.printStackTrace() })
+        }
     }
 }

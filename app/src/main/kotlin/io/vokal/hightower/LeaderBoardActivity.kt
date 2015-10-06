@@ -1,47 +1,32 @@
 package io.vokal.hightower;
 
-import android.app.Activity
-import android.app.job.*
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
+import android.support.v7.preference.EditTextPreferenceDialogFragmentCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.view.View
-import android.view.animation.OvershootInterpolator
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.SimpleAdapter
-import android.widget.Toast
 import android.util.Log
-
-import com.trello.rxlifecycle.components.RxActivity
-
+import android.view.*
+import android.widget.*
+import com.trello.rxlifecycle.components.support.RxAppCompatActivity
 import io.realm.Realm
 import io.realm.RealmConfiguration
-
 import io.vokal.hightower.api.Api
-import io.vokal.hightower.api.model.Player
-import io.vokal.hightower.api.model.PlayerResponse
-import io.vokal.hightower.api.model.getKdr
+import io.vokal.hightower.api.model.*
 import io.vokal.hightower.api.view.LeaderboardAdapter
-
-import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
-
 import kotlinx.android.synthetic.activity_leader_board.*
-import kotlin.properties.Delegates
-
-import java.util.*
-import java.util.concurrent.TimeUnit
-
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
-import rx.functions.Func2
-
+import rx.schedulers.Schedulers
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
+import java.util.*
+import kotlin.properties.Delegates
 
-public class LeaderBoardActivity : RxActivity() {
+public class LeaderBoardActivity : RxAppCompatActivity() {
 
     companion object {
         public val TAG: String = "LeaderBoardActivity"
@@ -54,7 +39,7 @@ public class LeaderBoardActivity : RxActivity() {
     private var adapter: LeaderboardAdapter = LeaderboardAdapter(ArrayList<Player>())
     private var scheduler: JobScheduler by Delegates.notNull()
 
-    private var mPlayerList: List<Player> = ArrayList<Player>()
+    private var mPlayerList: List<Player> = ArrayList()
 
     val realmConfig: RealmConfiguration by lazy {
         RealmConfiguration.Builder(this)
@@ -75,8 +60,8 @@ public class LeaderBoardActivity : RxActivity() {
 
         setContentView(R.layout.activity_leader_board)
 
-        actionBar.title = "Leaderboard"
-        actionBar.setDisplayShowHomeEnabled(true)
+        supportActionBar.title = "Leaderboard"
+        supportActionBar.setDisplayShowHomeEnabled(true)
 
         val listener = object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView : RecyclerView, dx : Int, dy : Int) {
@@ -107,18 +92,11 @@ public class LeaderBoardActivity : RxActivity() {
 
         sorting.onItemSelectedListener = sortingListener
 
-        swipe.setOnRefreshListener( {
-                refresh();
-            })
+        swipe.setOnRefreshListener({ refresh(); })
 
-        scheduleJob()
-    }
-
-    fun scheduleJob() {
         scheduler = getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
 
-        var builder = JobInfo.Builder(1, ComponentName(getPackageName(), 
-            StatsSyncService::class.java.getName()))
+        var builder = JobInfo.Builder(1, ComponentName(packageName, StatsSyncService::class.java.name))
         builder.setPeriodic(60000 * 10)
 
         if (scheduler.schedule(builder.build()) <= 0) {
@@ -132,11 +110,26 @@ public class LeaderBoardActivity : RxActivity() {
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_leader_board, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (item != null && item.itemId == R.id.action_settings) {
+            supportFragmentManager.beginTransaction()
+                .replace(android.R.id.content, SettingsFragment())
+                .commit()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     fun refresh() {
         updateList(Api.SERVICE.getAll()
                 .compose(bindToLifecycle<PlayerResponse>())
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .map( {playerResonse -> playerResonse.results }))
+                .map( {playerResponse -> playerResponse.results }))
     }
 
     fun updateList(observable : Observable<List<Player>>)  {
@@ -147,21 +140,21 @@ public class LeaderBoardActivity : RxActivity() {
                     Realm.getDefaultInstance().commitTransaction()
                 })
                 .onErrorResumeNext({error ->
+                    error.printStackTrace()
                     Observable.just(Realm.getDefaultInstance().allObjects(Player::class.java))
                 })
                 .flatMapIterable({i -> i})
                 .toSortedList(pointSort)
-                .subscribe(
-                        {playerList : List<Player> ->
+                .subscribe({playerList : List<Player> ->
                             mPlayerList = playerList
                             adapter = LeaderboardAdapter(playerList)
-                            leaderboard.adapter = LeaderboardAdapter(playerList)
-                        },
-                        {error -> error.printStackTrace()
+                            leaderboard.adapter = adapter
+                            Log.d(TAG, "playerList.size() = " + playerList.size())
+                        }, {error -> error.printStackTrace()
                             Toast.makeText(this, "There's a spy sappin my dispenser!", Toast.LENGTH_LONG).show()
                             swipe.isRefreshing = false
                         }, { swipe.isRefreshing = false }
-                );
+                )
     }
 
 }

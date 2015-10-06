@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Tf2Theme" parent="Theme.AppCompat.Light">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primaryDark</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="preferenceTheme">@style/Prefs</item>
+    </style>
+
+    <style name="Prefs" parent="PreferenceThemeOverlay.v14.Material">
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:textColorPrimary">@color/primary_text_dark</item>
+        <item name="android:textColorSecondary">@color/primary_text_light</item>
+    </style>
+</resources>

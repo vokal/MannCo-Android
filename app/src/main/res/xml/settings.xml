@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+            android:key="username_setting"
+            android:title="Steam user name:"
+            android:summary="User name shown on your steam profile"
+            />
+
+</PreferenceScreen>

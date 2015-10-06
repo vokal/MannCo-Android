@@ -1,0 +1,106 @@
+buildscript {
+    ext.kotlin_version = project.ext.kotlin_version
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.3.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
+        classpath 'me.tatarka:gradle-retrolambda:3.2.2'
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+
+    adbOptions {
+        timeOutInMs 600000
+    }
+
+    defaultConfig {
+        applicationId "io.vokal.hightower"
+        minSdkVersion 18
+        targetSdkVersion project.ext.compileSdkVersion
+        versionCode 1
+        versionName "0.1"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            //testCoverageEnabled true
+        }
+        
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lintOptions {
+        disable 'InvalidPackage', 'MissingPrefix'
+    }
+
+    packagingOptions {
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+        exclude 'LICENSE.txt'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        androidTest.java.srcDir 'src/androidTest/kotlin'
+        main.java.srcDir 'src/main/kotlin'
+        main.res.srcDir 'src/main/.res-gen'
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    // Google Support
+    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.google.android.support:wearable:1.3.0'
+    compile 'com.google.android.gms:play-services-wearable:8.1.0'
+
+    // ReactiveX
+    compile 'io.reactivex:rxandroid:1.0.1'
+    compile 'io.reactivex:rxjava:1.0.14'
+    compile 'com.trello:rxlifecycle:0.2.0'
+    compile 'com.trello:rxlifecycle-components:0.2.0'
+    compile 'com.jakewharton.rxbinding:rxbinding:0.2.0'
+
+    // Realm
+    compile 'io.realm:realm-android:0.82.2'
+    kapt    'io.realm:realm-android:0.82.2'
+
+    // Material
+    compile 'com.github.rey5137:material:1.2.1'
+    compile 'com.txusballesteros:FitChart:1.0'
+    compile 'com.github.PhilJay:MPAndroidChart:v2.1.4'
+
+    // Wear
+    compile 'com.github.jrejaud:wear-socket:0.1.2'
+
+    // Testing
+    androidTestCompile('com.android.support.test:runner:0.3') {
+        exclude module: 'support-annotations'
+    }
+    androidTestCompile('com.android.support.test:rules:0.3') {
+        exclude module: 'support-annotations'
+    }
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2') {
+        exclude module: 'support-annotations'
+    }
+}
